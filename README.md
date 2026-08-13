@@ -1,88 +1,194 @@
-# 🛡️ Aegis – Multimodal Crisis Command Center
+# Aegis — Multimodal Crisis Command Center
 
-**Aegis** is an AI-powered Situation Awareness system designed for crisis management. It fuses data from **Video, Image, Audio, and Text** sources into a unified vector database to provide real-time intelligence, semantic search, and grounded analytical reasoning.
+**AI-powered situational awareness for crisis operations.**  
+Aegis fuses **video, image, audio, and text** into a unified vector memory, then grounds LLM answers in retrieved evidence — with planner/critic agents, provenance logging, and a live operational dashboard.
 
-![System Architecture](system_architecture.png)
-
-## 🚀 Features
-
-### 1. Multimodal Ingestion Agents
-*   **🎥 Watcher Agent (`watcher_agent.py`)**: Monitors video feeds via YOLO-World for hazard detection and CLIP for frame indexing.
-*   **🖼️ Image Agent (`image_agent.py`)**: Processes static imagery with OCR and geospatial tagging.
-*   **🎙️ Listener Agent (`listener_agent.py`)**: Transcribes radio/audio logs with automated MP3-to-WAV conversion and geocoding.
-*   **📄 Text Agent (`text_agent.py`)**: Ingests social media snippets and tactical SITREPs.
-
-### 2. Intelligent Core (Advanced Agentic Framework)
-*   **🧠 Strategic Retrieval & Tool Use**: Agents actively *choose* when to search vs. answer directly. Includes the **Explicit Planner Agent** (`planner_agent.py`) for decomposing complex multi-step queries.
-*   **🔍 Critic Agent (`critic_agent.py`)**: Self-correction module that checks for hallucinations, verifies citations, and enforces safety warnings.
-*   **⏳ Episodic Memory (`episodic_memory.py`)**: Stores interaction summaries to enable contextual recall (e.g., resolving "Is *it* safe there?" based on previous turns).
-*   **🛡️ Autonomous Verification (`analyst_agent.py`)**: Background agent that autonomously cross-validates visual hazards with audio intelligence before issuing alerts.
-*   **Advanced Memory Manager (`memory_manager.py`)**: Centralized lifecycle for embeddings, including TTL-based eviction and confidence scoring.
-*   **Robust LLM Manager (`llm_manager.py`)**: Multi-model fallback system (Llama-3.3-70B → Mixtral → Llama-3.1-8B) to ensure 100% uptime even during rate limits.
-*   **Retrieval Provenance (`retrieval_logger.py`)**: Full traceability of every AI response, logging queries, retrieved evidence IDs, and confidence scores.
-
-### 3. Command Dashboard
-*   **📍 Crisis Operational Map**: Real-time visualization of hazards, civilians, and field data.
-*   **🔍 Semantic Search**: Multi-modal search with high-precision keyword filtering.
-*   **💬 Safety AI Chat**: Agentic chat interface with **Confidence Badges** and "Plan Execution" visualization.
-*   **⚡ Zero-Latency Alerts**: Verified alerts from the Autonomous Analyst Agent.
+![Aegis System Architecture](system_architecture.png)
 
 ---
 
-## 🏗️ Architecture & Memory Model
+## Why this project
 
-- **Vector Database**: Qdrant Cloud (Managed)
-- **Embedding Models**: 
-  - `BAAI/bge-small-en-v1.5` (Text/Audio - 384d)
-  - `Qdrant/clip-ViT-B-32-text` (Visual - 512d)
-- **Reasoning Engine**: Groq (Llama-3.3-70B)
-- **Object Detection**: YOLO-World (Open-Vocabulary)
+During disasters, critical signals are scattered across CCTV, radio traffic, field photos, and social/tactical reports. Analysts lose time stitching modalities by hand.
 
-For a deep dive into the system design, see [ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Aegis treats crisis intelligence as a **multimodal retrieval + agentic reasoning** problem:
 
----
+1. **Ingest** heterogeneous feeds through specialized agents  
+2. **Index** them in modality-aware vector collections (Qdrant)  
+3. **Retrieve** with hybrid vector + keyword/metadata filtering  
+4. **Reason** with tool-using LLMs, then **verify** with a critic / autonomous analyst  
+5. **Present** grounded answers, map overlays, and alerts to operators
 
-## 🛠️ Setup & Installation
-
-See [SETUP.md](SETUP.md) for detailed environment configuration and execution instructions.
-
-### Quick Start (Environment)
-1. Install requirements: `pip install -r requirements.txt`
-2. Configure `.env`:
-   ```ini
-   QDRANT_URL=https://your-cluster.qdrant.io
-   QDRANT_API_KEY=your-api-key
-   GROQ_API_KEY=your-groq-key
-   ```
+Built as a portfolio-grade research system demonstrating production-minded patterns: fallback LLMs, episodic memory, retrieval provenance, and evaluation harnesses.
 
 ---
 
-## 🧪 Evaluation & Performance
+## Features
 
-Aegis includes a built-in evaluation harness to measure system accuracy and responsiveness.
+### Multimodal ingestion agents
+| Agent | Input | What it does |
+|-------|--------|----------------|
+| **Watcher** (`watcher_agent.py`) | Video | YOLO-World hazard detection + CLIP frame indexing |
+| **Image** (`image_agent.py`) | Images | OCR, open-vocab detection, geospatial tagging |
+| **Listener** (`listener_agent.py`) | Audio | STT, MP3→WAV, geocoding into audio memory |
+| **Text** (`text_agent.py`) | Text / SITREPs | Social & tactical report embedding |
 
-**Run Benchmarks:**
+### Agentic intelligence core
+- **Planner** — decomposes multi-step operational queries  
+- **Critic** — checks hallucinations, citations, and safety warnings  
+- **Episodic memory** — multi-turn context (“is *it* safe there?”)  
+- **Autonomous analyst** — cross-validates visual hazards with audio intel  
+- **LLM manager** — multi-model fallback (Llama-3.3-70B → Mixtral → Llama-3.1-8B)  
+- **Retrieval provenance** — every answer logs query, evidence IDs, confidence  
+
+### Command dashboard (Streamlit)
+- Crisis operational map  
+- Multimodal semantic search  
+- Safety AI chat with confidence badges & plan visualization  
+- Verified live alerts  
+
+---
+
+## Use cases
+
+| Scenario | How Aegis helps |
+|----------|-----------------|
+| **Urban flooding** | Index CCTV frames + radio transcripts + civic reports; ask “flood risk near Chennai marina?” with cited evidence |
+| **Cyclone / severe weather** | Fuse warning text, field audio, and imagery into one searchable memory |
+| **Infrastructure failure** | Detect collapse-related visuals (YOLO-World) and correlate with tactical notes |
+| **EOC briefing** | Operators query the dashboard in natural language instead of hunting folders |
+| **Research / teaching** | End-to-end lab for multimodal RAG, agent tooling, and retrieval evaluation |
+
+> **Important:** Aegis is a research / demo command-center prototype. Critical decisions must remain **human-in-the-loop**.
+
+---
+
+## Tech stack
+
+| Layer | Choice | Why |
+|-------|--------|-----|
+| Vector DB | Qdrant Cloud | Hybrid vector + payload filters |
+| Text embeddings | `BAAI/bge-small-en-v1.5` (384d) via FastEmbed | Fast local CPU inference |
+| Visual embeddings | CLIP ViT-B/32 (512d) | Cross-modal image/frame search |
+| Detection | YOLO-World (open vocabulary) | Hazard classes without fixed taxonomy only |
+| Reasoning | Groq (Llama family) | Low-latency tactical Q&A |
+| UI | Streamlit | Rapid ops dashboard |
+| Geo | Nominatim / geopy | City-level location grounding |
+
+Deep dive: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · Research & experiments: [docs/RESEARCH.md](docs/RESEARCH.md)
+
+---
+
+## Quick start
+
+### Prerequisites
+- Python **3.10+**
+- [Qdrant Cloud](https://cloud.qdrant.io/) URL + API key  
+- [Groq](https://console.groq.com/) API key  
+
+### Install
+```bash
+git clone https://github.com/GokulRavi1/Aegis-Multimodal-Crisis-Command-Center.git
+cd Aegis-Multimodal-Crisis-Command-Center
+pip install -r requirements.txt
+```
+
+### Configure
+Create a `.env` in the project root:
+
+```ini
+QDRANT_URL=https://your-cluster.qdrant.io
+QDRANT_API_KEY=your-api-key
+GROQ_API_KEY=your-groq-key
+```
+
+### Run (separate terminals)
+```bash
+# Ingestion
+python watcher_agent.py
+python image_agent.py
+python listener_agent.py
+python text_agent.py
+
+# Intelligence
+python analyst_agent.py
+
+# Dashboard → http://localhost:8501
+streamlit run dashboard.py
+```
+
+Drop files into the `_inbox/` hot folders to trigger ingestion.  
+Full walkthrough, troubleshooting, and reset steps: **[SETUP.md](SETUP.md)**.
+
+### Evaluate
 ```bash
 python tests/benchmark.py
 ```
-*   **Metrics tracked**: Precision@k, Recall@k, Latency (ms), and Throughput (QPS).
-*   **Provenance**: View `retrieval_logs.json` for detailed RAG audit trails.
+See [docs/RESEARCH.md](docs/RESEARCH.md) for methodology, metrics, and early experiment results.
 
 ---
 
-## 📂 Project Structure
+## Project structure
 
-*   `docs/`: Detailed system documentation and reports.
-*   `tests/`: Evaluation benchmarks and test suites.
-*   `_inbox/`: Hot-folders for real-time data ingestion.
-*   `memory_manager.py`: Core memory lifecycle logic.
-*   `retrieval_logger.py`: RAG traceability and provenance.
+```text
+Aegis-Multimodal-Crisis-Command-Center/
+├── dashboard.py              # Streamlit command center
+├── *_agent.py                # Ingestion + planner/critic/analyst agents
+├── memory_manager.py         # Embedding lifecycle, TTL, confidence
+├── llm_manager.py            # Multi-model LLM fallback
+├── retrieval_tools.py        # RAG tool interface
+├── retrieval_logger.py       # Provenance / audit trail
+├── episodic_memory.py        # Multi-turn session memory
+├── geo_utils.py              # Geocoding helpers
+├── config.py                 # Shared configuration
+├── docs/
+│   ├── ARCHITECTURE.md       # System design
+│   └── RESEARCH.md           # Problem, method, experiments
+├── tests/                    # Benchmarks & unit checks
+├── SETUP.md                  # Detailed setup
+├── system_architecture.png   # Architecture diagram
+└── LICENSE                   # MIT
+```
 
-## 🧠 AI Stack Rationale
+---
 
-| Component | Choice | Rationale |
-| :--- | :--- | :--- |
-| **Embeddings** | FastEmbed | Low-latency local CPU inference. |
-| **Search** | Qdrant | Hybrid filtering (Vector + Metadata + Keywords). |
-| **Reasoning** | Groq/Llama | Ultra-fast inference for real-time tactical advice. |
-| **Geospatial** | Nominatim | Accurate city/state level coordinate extraction. |
+## Research highlights
+
+Aegis explores **multimodal RAG for crisis situational awareness**:
+
+- Separate **visual (512d)** and **text/audio (384d)** memories with shared operational payloads  
+- Agent tooling: search-vs-answer decisions, explicit planning, critic verification  
+- Evaluation harness tracking **Precision@k**, latency, and retrieval provenance  
+
+Early bench runs and analysis (including limitations on a small demo corpus) are documented in **[docs/RESEARCH.md](docs/RESEARCH.md)**.
+
+---
+
+## Roadmap
+
+- [ ] Sparse + dense hybrid search (e.g. BM25 + vectors)  
+- [ ] Stronger location-aware re-ranking  
+- [ ] PII redaction module  
+- [ ] Multi-language OCR / STT  
+- [ ] Edge / offline deployment mode  
+- [ ] Real-time streaming ingestion  
+
+---
+
+## Contributing
+
+Issues and PRs are welcome. For local setup, follow [SETUP.md](SETUP.md). Please keep changes focused, documented, and free of secrets (never commit `.env`).
+
+---
+
+## License
+
+This project is released under the **[MIT License](LICENSE)** — free to use, modify, and distribute with attribution.
+
+---
+
+## Acknowledgments
+
+- [Qdrant](https://qdrant.tech/) · [Groq](https://groq.com/) · [Ultralytics YOLO-World](https://docs.ultralytics.com/) · [FastEmbed](https://qdrant.github.io/fastembed/) · OpenStreetMap / Nominatim  
+
+Built by **GokulR** as an open research system for multimodal crisis intelligence.
