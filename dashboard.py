@@ -81,6 +81,22 @@ st.sidebar.header("⚠️ Live Alert Feed")
 if st.sidebar.button("🔄 Refresh Alerts"):
     st.rerun()
 
+# Streamlit reruns the whole script on every interaction; cache headline LLM calls
+# so each alert/result is only summarized once. Raising on failure keeps misses uncached.
+@st.cache_data(show_spinner=False, ttl=3600)
+def _cached_headline(system_prompt, ctx, max_tokens):
+    text = get_llm_manager().chat_completion(
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": ctx}
+        ],
+        temperature=0.3,
+        max_tokens=max_tokens
+    )
+    if not text:
+        raise RuntimeError("LLM returned no headline")
+    return text
+
 # Dynamic Alert Feed - Fetch from all Qdrant collections
 def generate_alert_text(payload, data_type):
     """Use LLM to generate a concise alert message."""
@@ -106,14 +122,7 @@ def generate_alert_text(payload, data_type):
         else:
             ctx = f"Text Report: {payload.get('content', '')[:150]}"
         
-        return llm_manager.chat_completion(
-            messages=[
-                {"role": "system", "content": "Generate a 10-15 word emergency alert headline. Be direct, tactical. No quotes."},
-                {"role": "user", "content": ctx}
-            ],
-            temperature=0.3,
-            max_tokens=30
-        )
+        return _cached_headline("Generate a 10-15 word emergency alert headline. Be direct, tactical. No quotes.", ctx, 30)
     except:
         disaster = payload.get("detected_disaster", "Unknown")
         return f"ALERT: {disaster.upper()}"
@@ -343,6 +352,7 @@ def get_rag_response(query, chat_history=None):
                 {"role": "system", "content": AGENT_SYSTEM_PROMPT},
                 {"role": "user", "content": full_prompt}
             ],
+            max_tokens=600,
             temperature=0.3
         )
 
@@ -589,13 +599,7 @@ with tab2:
             else:
                 ctx = f"Report: {payload.get('content', '')[:200]}"
             
-            generated = llm_manager.chat_completion(
-                messages=[
-                    {"role": "system", "content": "Generate a 10-20 word emergency warning based on this crisis data. Be direct (example: 'Major flooding in Saidapet area - evacuation recommended')."},
-                    {"role": "user", "content": ctx}
-                ],
-                temperature=0.3, max_tokens=40
-            )
+            generated = _cached_headline("Generate a 10-20 word emergency warning based on this crisis data. Be direct (example: 'Major flooding in Saidapet area - evacuation recommended').", ctx, 40)
             return generated if generated else f"⚠️ {payload.get('detected_disaster', 'Alert').upper()}"
         except:
             return f"⚠️ {payload.get('detected_disaster', 'Alert').upper()}"

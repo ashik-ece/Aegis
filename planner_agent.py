@@ -71,6 +71,7 @@ INSTRUCTIONS:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": full_prompt}
             ],
+            max_tokens=500,  # default of 100 truncates multi-step plans mid-JSON
             temperature=0.0  # Zero temp for deterministic JSON
         )
         

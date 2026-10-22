@@ -198,7 +198,7 @@ OUTPUT FORMAT (JSON only, no markdown):
         try:
             result = self.llm_manager.chat_completion(
                 messages=[{"role": "user", "content": critic_prompt}],
-                max_tokens=200,
+                max_tokens=400,
                 temperature=0.1
             )
             
