@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Qdrant](https://img.shields.io/badge/Vector%20DB-Qdrant-DC244C)](https://qdrant.tech/)
-[![Groq](https://img.shields.io/badge/LLM-Groq%20%2F%20Llama-F55036)](https://groq.com/)
+[![Groq](https://img.shields.io/badge/LLM-Groq-F55036)](https://groq.com/)
 [![YOLO-World](https://img.shields.io/badge/Detection-YOLO--World-00FFFF)](https://docs.ultralytics.com/)
 [![Streamlit](https://img.shields.io/badge/Dashboard-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
 
@@ -185,7 +185,7 @@ For deeper design notes, see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 - Explicit **planner** for multi-hop queries  
 - **Critic** for grounding and safety  
 - **Episodic memory** for multi-turn operator chat  
-- **LLM manager** with fallback: Llama-3.3-70B → Mixtral → Llama-3.1-8B  
+- **LLM manager** with fallback: Qwen3.8-27B → GPT-OSS-20B → GPT-OSS-120B (Groq)  
 - Full **retrieval provenance** for auditability  
 
 ### Command dashboard
@@ -216,7 +216,7 @@ For deeper design notes, see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 | Text embeddings | **BAAI/bge-small-en-v1.5** (384d) | Fast local CPU embeddings via FastEmbed |
 | Visual embeddings | **CLIP ViT-B/32** (512d) | Image / frame semantic search |
 | Object detection | **YOLO-World** | Open-vocabulary hazard detection |
-| Reasoning | **Groq** (Llama family) | Low-latency grounded Q&A |
+| Reasoning | **Groq** (Qwen / GPT-OSS) | Low-latency grounded Q&A |
 | Dashboard | **Streamlit** | Operator UI |
 | Geolocation | **Nominatim / geopy** | City-level coordinate grounding |
 | Speech | **SpeechRecognition + pydub** | Audio transcription pipeline |
@@ -376,7 +376,7 @@ For local development, follow [`SETUP.md`](SETUP.md).
 Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
 
 ```text
-Copyright (c) 2026 GokulR
+Copyright (c) 2026 Ashik M John
 ```
 
 ---
@@ -389,5 +389,5 @@ Built with [Qdrant](https://qdrant.tech/), [Groq](https://groq.com/), [Ultralyti
 
 <p align="center">
   <b>Aegis</b> — open research system for multimodal crisis intelligence<br/>
-  Built by <b>GokulR</b>
+  Built by <b>Ashik M John</b>
 </p>
