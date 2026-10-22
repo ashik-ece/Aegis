@@ -118,14 +118,21 @@ def main():
         try:
             # 1. Scan Latest Visual Events
             if client.collection_exists(VISUAL_COLLECTION):
-                # Fetch latest 5 items
-                search_result = client.scroll(
-                    collection_name=VISUAL_COLLECTION,
-                    limit=5,
-                    with_payload=True,
-                    with_vectors=False
-                )
-                points, _ = search_result
+                # Scroll returns points in ascending id order, so page through all of
+                # them; a fixed-size first page would never reach newly indexed items.
+                points = []
+                offset = None
+                while True:
+                    page, offset = client.scroll(
+                        collection_name=VISUAL_COLLECTION,
+                        limit=100,
+                        offset=offset,
+                        with_payload=True,
+                        with_vectors=False
+                    )
+                    points.extend(page)
+                    if offset is None:
+                        break
                 
                 if not points:
                     print("   (No visual data found)")
@@ -141,14 +148,15 @@ def main():
                     if not hazard_type or hazard_type == "None":
                         continue
                         
-                    location = payload.get("location", "Unknown Location")
+                    location = payload.get("location") or {}
+                    location_name = location.get("name", "Unknown Location") if isinstance(location, dict) else str(location)
                     description = payload.get("ocr_text", "")
                     
                     # 2. Verify Hazard
-                    is_confirmed = verify_hazard(llm, toolkit, hazard_type, location, description)
+                    is_confirmed = verify_hazard(llm, toolkit, hazard_type, location_name, description)
                     
                     if is_confirmed:
-                        alert_msg = f"CONFIRMED THREAT: {hazard_type} at {location}."
+                        alert_msg = f"CONFIRMED THREAT: {hazard_type} at {location_name}."
                         save_alert({
                             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
                             "msg": alert_msg,
