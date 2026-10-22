@@ -9,17 +9,15 @@ class LLMManager:
     Cycles through multiple models to handle Rate Limit (429) errors.
     """
     
-    # Priority list of models to try
-    # 1. Llama 3.3 70B (Best quality)
-    # 2. Mixtral 8x7B (High quality, different quota)
-    # 3. Llama 3.1 8B (Fast, different quota)
-    # 4. Gemma 2 9B (Google's model, separate quota)
-    # 5. Llama 3 70B (Legacy, fallback)
+    # Priority list of models to try (Groq retired the Llama/Mixtral/Gemma ids
+    # this originally listed; check client.models.list() if these 404 again).
+    # 1. Qwen 3.8 27B (non-reasoning: honors small max_tokens)
+    # 2. GPT-OSS 20B (reasoning: needs a generous max_tokens, empty replies are skipped)
+    # 3. GPT-OSS 120B (reasoning, separate quota)
     MODELS = [
-        "llama-3.3-70b-versatile",
-        "llama-3.1-8b-instant",
-        "llama3-70b-8192",
-        "gemma2-9b-it" 
+        "qwen/qwen3.8-27b",
+        "openai/gpt-oss-20b",
+        "openai/gpt-oss-120b",
     ]
     
     def __init__(self):
@@ -46,7 +44,12 @@ class LLMManager:
                     temperature=temperature,
                     max_tokens=max_tokens
                 )
-                return completion.choices[0].message.content.strip()
+                content = (completion.choices[0].message.content or "").strip()
+                if not content:
+                    # Reasoning models can spend the whole token budget thinking
+                    print(f"   ⚠️ Empty reply from {model}. Switching to backup...")
+                    continue
+                return content
                 
             except RateLimitError as e:
                 print(f"   ⚠️ Rate Limit hit for {model}. Switching to backup...")

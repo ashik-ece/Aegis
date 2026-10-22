@@ -39,7 +39,7 @@ class RetrievalLogger:
         retrieved_points: List[Dict[str, Any]],
         llm_prompt: str,
         llm_response: str,
-        model: str = "llama-3.3-70b-versatile",
+        model: str = "qwen/qwen3.8-27b",
         session_id: Optional[str] = None,
         critic_evaluation: Optional[Dict] = None
     ) -> str:
