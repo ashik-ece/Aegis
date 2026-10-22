@@ -145,7 +145,6 @@ class VideoHandler(FileSystemEventHandler):
 
 
             frame_count += 1
-            frame_count += 1
             if frame_count % 30 != 0:
                 continue
 

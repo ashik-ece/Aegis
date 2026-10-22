@@ -8,6 +8,7 @@ import time
 import datetime
 from typing import Optional, Dict, List, Any
 from qdrant_client import QdrantClient, models
+from qdrant_client.http.exceptions import UnexpectedResponse
 from config import get_qdrant_client
 
 
@@ -43,14 +44,20 @@ class MemoryManager:
         """Create all collections if they don't exist."""
         for name, config in self.COLLECTIONS.items():
             if not self.client.collection_exists(name):
-                self.client.create_collection(
-                    collection_name=name,
-                    vectors_config=models.VectorParams(
-                        size=config["dim"],
-                        distance=models.Distance.COSINE
+                try:
+                    self.client.create_collection(
+                        collection_name=name,
+                        vectors_config=models.VectorParams(
+                            size=config["dim"],
+                            distance=models.Distance.COSINE
+                        )
                     )
-                )
-                print(f"   📁 Created collection: {name}")
+                    print(f"   📁 Created collection: {name}")
+                except UnexpectedResponse as e:
+                    # Another agent created it between the check and the create
+                    if e.status_code != 409:
+                        raise
+                    print(f"   ✅ Collection exists: {name}")
             else:
                 print(f"   ✅ Collection exists: {name}")
     

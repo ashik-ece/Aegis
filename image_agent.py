@@ -116,11 +116,13 @@ class ImageHandler(FileSystemEventHandler):
             
             Format: [Location Name] alert: [Detailed description of issue] - [Warning/Action]."""
             
-            return self.llm_manager.chat_completion(
+            summary = self.llm_manager.chat_completion(
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=100,
                 temperature=0.7
             )
+            # chat_completion returns None when no API key is set or every model failed
+            return summary or f"Alert: {disaster} detected at {location_name}. {ocr_text}"
         except Exception as e:
             print(f"   ⚠️ Summary LLM Error: {e}")
             return f"Crisis Alert at {location_name}: {disaster} detected. OCR: {ocr_text[:50]}"
